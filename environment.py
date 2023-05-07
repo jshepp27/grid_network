@@ -140,7 +140,7 @@ class TransmissionAsset(gym.Env):
             print("UNMANAGED FAILURE")
             self.unmanaged_failure = True
             done = True
-            penalty = reward - 100
+            penalty = reward - 1000
             reward += (penalty - self.reward_min) / (self.reward_max - self.reward_min)
 
         # RANDOM FAILURE
@@ -167,19 +167,19 @@ class TransmissionAsset(gym.Env):
         pass
 
 
-env = TransmissionAsset()
-
-env.reset()
-for _ in range(5):
-    state, reward, done, info = env.step(action=0)
-    if done:
-        print("ASSET FAILED")
-        print(info["probability_failure"])
-        break
-
-    else:
-        print(info)
-        print(state)
-        print(reward, done)
-        print("")
+# env = TransmissionAsset()
+#
+# env.reset()
+# for _ in range(5):
+#     state, reward, done, info = env.step(action=0)
+#     if done:
+#         print("ASSET FAILED")
+#         print(info["probability_failure"])
+#         break
+#
+#     else:
+#         print(info)
+#         print(state)
+#         print(reward, done)
+#         print("")
 

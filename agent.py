@@ -1,3 +1,4 @@
+import torch
 import torch as T
 import torch.nn as nn
 import torch.nn.functional as F
@@ -5,9 +6,12 @@ import torch.optim as optim
 import torch as T
 import numpy as np
 import matplotlib.pyplot as plt
+import pickle
 
 import environment
 import random
+
+import utils
 
 np.set_printoptions(precision=8, suppress=True)
 
@@ -17,9 +21,9 @@ N_ACTIONS = 3
 INPUT_DIMS = 6
 EPSILON = 1.00
 GAMMA = 0.09
-DECAY = 0.001
+DECAY = 0.0001
 EPS_MIN = 0.01
-BUFFER_SIZE = 200
+BUFFER_SIZE = 1000
 BATCH_SIZE = 64
 
 """
@@ -150,96 +154,66 @@ class Agent():
         self.Q.optimizer.step()
         self.decrement_epsilon()
 
-def create_plot(x_axis, scores):
-    fig, ax = plt.subplots()
-    ax.plot(x_axis, scores, label="scores")
+class Random_Agent:
+    def __init__(self, n_actions):
+        self.action_space = n_actions
+        self.epsilon = None
+    def choose_action(self, observation):
+        action = np.random.choice(self.action_space)
 
-    N = len(scores)
-    running_avg = np.empty(N)
-    for t in range(N):
-        running_avg[t] = np.mean(scores[max(0, t - 100):(t + 1)])
-
-    ax.plot(x_axis, running_avg, label="average")
-    ax.set_title("Learning Curve DQN")
-    ax.legend()
-    ax.set_xlabel("Episodes")
-    ax.set_ylabel("Learning")
-    return fig, ax
+        return action
 
 # TRAIN
-if __name__ == "__main__":
-    env = environment.TransmissionAsset()
-    scores = []
-    eps_history = []
-    eps_av = []
-
-    obs, _, done, info = env.reset()
-    n_games = 500
-    print(obs)
-
-    agent = Agent(lr=0.0001, input_dims=obs.shape, n_actions=env.action_spaces.n, buffer_size=500, batch_size=64)
-    #print(agent.Q)
-
-    for _ in range(n_games):
-        score = 0
-        steps = 0
-        max_steps = 250
-        done = False
-        obs, reward, done, info = env.reset()
-
-        over = False
-        while ((not over) and (steps < max_steps)):
-            steps += 1
-            action = agent.choose_action(obs)
-            obs_, reward, done, info = env.step(action)
-            score += reward
-
-            # Increment Experience
-            agent.exp_replay.add((obs, action, reward, obs_))
-            agent.learn()
-
-            obs = obs_
-
-            # TODO: Improve Implementation
-            if done:
-                over = True
-                # TODO: How to pass back Episode Success
-                # if env.unmanaged_failure == False:
-                #     reward += 100
-                # else:
-                #     over = True
-
-        scores.append(score)
-        avg_score = np.mean(scores)
-        eps_history.append(agent.epsilon)
-        print('episode ', _, 'score %.1f avg score %.1f epsilon %.2f, steps %.1f' %
-                  (score, avg_score, agent.epsilon, steps))
-
-
-filename = 'plots/asset_rehabilitation_dqn.png'
-x_axis = [i+1 for i in range(n_games)]
-
-# TODO: Implement Individual Episode Curves OR Multi-Training Curves, different Params
-create_plot(x_axis, scores)
-
-plt.savefig(filename)
-plt.show()
-
-# N = len(scores)
-# running_avg = np.empty(N)
-# for t in range(N):
-#     running_avg[t] = np.mean(scores[max(0, t-100):(t+1)])
-
-# DUMB LOOP
-# for _ in range(100):
-#     state, reward, done, info = env.step(action=0)
-#     if done:
-#         print("ASSET FAILED")
-#         print(info["probability_failure"])
-#         break
+# if __name__ == "__main__":
+#     env = environment.TransmissionAsset()
+#     scores = []
+#     eps_history = []
+#     eps_av = []
 #
-#     else:
-#         print(info)
-#         print(state)
-#         print(reward, done)
-#         print("")
+#     obs, _, done, info = env.reset()
+#     n_games = 1000
+#     print(obs)
+#
+#     agent = Agent(lr=0.0001, input_dims=obs.shape, n_actions=env.action_spaces.n, buffer_size=500, batch_size=64)
+#     #print(agent.Q)
+#
+#     for _ in range(n_games):
+#         score = 0
+#         steps = 0
+#         max_steps = 250
+#         done = False
+#         obs, reward, done, info = env.reset()
+#
+#         over = False
+#         while ((not over) and (steps < max_steps)):
+#             steps += 1
+#             action = agent.choose_action(obs)
+#             obs_, reward, done, info = env.step(action)
+#             score += reward
+#
+#             # Increment Experience
+#             agent.exp_replay.add((obs, action, reward, obs_))
+#             agent.learn()
+#
+#             obs = obs_
+#
+#             # TODO: Improve Implementation
+#             if done:
+#                 over = True
+#                 # TODO: How to pass back Episode Success
+#
+#         scores.append(score)
+#         avg_score = np.mean(scores)
+#         eps_history.append(agent.epsilon)
+#         print('episode ', _, 'score %.1f avg score %.1f epsilon %.2f, steps %.1f' %
+#                   (score, avg_score, agent.epsilon, steps))
+#
+#     # STORE Agent
+#     with open("trained_agent.pkl", "wb") as f:
+#         pickle.dump(agent, f)
+#
+#     filename = 'plots/asset_rehabilitation_dqn.png'
+#     x_axis = [i+1 for i in range(n_games)]
+#
+#     filename = 'plots/training_asset_rehabilitation.png'
+#     utils.create_plot(x_axis, scores, filename=filename)
