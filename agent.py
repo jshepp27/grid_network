@@ -216,7 +216,7 @@ if __name__ == "__main__":
                   (score, avg_score, agent.epsilon, steps))
 
 
-filename = 'asset_rehabilitation_dqn.png'
+filename = 'plots/asset_rehabilitation_dqn.png'
 x_axis = [i+1 for i in range(n_games)]
 
 # TODO: Implement Individual Episode Curves OR Multi-Training Curves, different Params
