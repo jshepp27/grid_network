@@ -4,12 +4,10 @@
 # Store Performance, Evaluation
 
 import environment
-import agent
 
 import pickle
 import numpy as np
-from agent import Agent, ReplayBuffer, DQN, Random_Agent
-import utils
+import matplotlib.pyplot as plt
 
 """
 TODOs:
@@ -47,6 +45,7 @@ class Evaluate:
                 obs_, reward, done, info = self.env.step(action)
                 score += reward
 
+
                 if done:
                     over = True
 
@@ -65,12 +64,15 @@ class Evaluate:
                 print('episode ', _, 'score %.1f avg score %.1f, steps %.1f' %
                       (score, avg_perf, steps))
 
+            self.env.render()
+            plt.show()
+
 with open("trained_agent.pkl", "rb") as f:
     AGENT = pickle.load(f)
 
 MAX_STEPS = 250
 TRIALS = 1000
-ENV = environment.TransmissionAsset()
+ENV = environment.TransmissionAsset(max_steps=MAX_STEPS)
 
 evaluation = Evaluate(ENV, AGENT, MAX_STEPS, TRIALS)
 print(">> TRAINED AGENT")
@@ -79,17 +81,17 @@ evaluation.evaluate()
 
 x_axis = [i+1 for i in range(evaluation.trials)]
 performance = evaluation.performance
-plot = utils.create_plot(x_axis, performance, filename="plots/evaluation_asset_rehabilitation.png")
+#plot = utils.create_plot(x_axis, performance, filename="plots/evaluation_asset_rehabilitation.png")
 
-ENV = environment.TransmissionAsset()
-RAND_AGENT = Random_Agent(ENV.action_spaces.n)
+#ENV = environment.TransmissionAsset()
+#RAND_AGENT = Random_Agent(ENV.action_spaces.n)
 
-rand_evaluation = Evaluate(ENV, RAND_AGENT, MAX_STEPS, random_agent=True, trials=TRIALS)
+#rand_evaluation = Evaluate(ENV, RAND_AGENT, MAX_STEPS, random_agent=True, trials=TRIALS)
 
-print(">> RANDOM AGENT")
-print("\n")
-rand_evaluation.evaluate()
-
-x_axis = [i+1 for i in range(rand_evaluation.trials)]
-performance = rand_evaluation.performance
-rand_plot = utils.create_plot(x_axis, performance, filename="plots/rand_evaluation_asset_rehabilitation.png")
+# print(">> RANDOM AGENT")
+# print("\n")
+# rand_evaluation.evaluate()
+#
+# x_axis = [i+1 for i in range(rand_evaluation.trials)]
+# performance = rand_evaluation.performance
+# rand_plot = utils.create_plot(x_axis, performance, filename="plots/rand_evaluation_asset_rehabilitation.png")

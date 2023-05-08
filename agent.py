@@ -1,22 +1,19 @@
-import torch
-import torch as T
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import torch as T
 import numpy as np
-import matplotlib.pyplot as plt
 import pickle
 
 import environment
 import random
 
-import utils
+from data.archive import utils
 
 np.set_printoptions(precision=8, suppress=True)
 
 # PARAMS
-LEARNING_RATE = 0.0001
+LEARNING_RATE = 0.001
 N_ACTIONS = 3
 INPUT_DIMS = 6
 EPSILON = 1.00
@@ -164,56 +161,56 @@ class Random_Agent:
         return action
 
 # TRAIN
-# if __name__ == "__main__":
-#     env = environment.TransmissionAsset()
-#     scores = []
-#     eps_history = []
-#     eps_av = []
-#
-#     obs, _, done, info = env.reset()
-#     n_games = 1000
-#     print(obs)
-#
-#     agent = Agent(lr=0.0001, input_dims=obs.shape, n_actions=env.action_spaces.n, buffer_size=500, batch_size=64)
-#     #print(agent.Q)
-#
-#     for _ in range(n_games):
-#         score = 0
-#         steps = 0
-#         max_steps = 250
-#         done = False
-#         obs, reward, done, info = env.reset()
-#
-#         over = False
-#         while ((not over) and (steps < max_steps)):
-#             steps += 1
-#             action = agent.choose_action(obs)
-#             obs_, reward, done, info = env.step(action)
-#             score += reward
-#
-#             # Increment Experience
-#             agent.exp_replay.add((obs, action, reward, obs_))
-#             agent.learn()
-#
-#             obs = obs_
-#
-#             # TODO: Improve Implementation
-#             if done:
-#                 over = True
-#                 # TODO: How to pass back Episode Success
-#
-#         scores.append(score)
-#         avg_score = np.mean(scores)
-#         eps_history.append(agent.epsilon)
-#         print('episode ', _, 'score %.1f avg score %.1f epsilon %.2f, steps %.1f' %
-#                   (score, avg_score, agent.epsilon, steps))
-#
-#     # STORE Agent
-#     with open("trained_agent.pkl", "wb") as f:
-#         pickle.dump(agent, f)
-#
-#     filename = 'plots/asset_rehabilitation_dqn.png'
-#     x_axis = [i+1 for i in range(n_games)]
-#
-#     filename = 'plots/training_asset_rehabilitation.png'
-#     utils.create_plot(x_axis, scores, filename=filename)
+if __name__ == "__main__":
+    env = environment.TransmissionAsset()
+    scores = []
+    eps_history = []
+    eps_av = []
+
+    obs, _, done, info = env.reset()
+    n_games = 5000
+    print(obs)
+
+    agent = Agent(lr=LEARNING_RATE, input_dims=obs.shape, n_actions=env.action_spaces.n, buffer_size=BUFFER_SIZE, batch_size=64)
+    #print(agent.Q)
+
+    for _ in range(n_games):
+        score = 0
+        steps = 0
+        max_steps = 200
+        done = False
+        obs, reward, done, info = env.reset()
+
+        over = False
+        while ((not over) and (steps < max_steps)):
+            steps += 1
+            action = agent.choose_action(obs)
+            obs_, reward, done, info = env.step(action)
+            score += reward
+
+            # Increment Experience
+            agent.exp_replay.add((obs, action, reward, obs_))
+            agent.learn()
+
+            obs = obs_
+
+            # TODO: Improve Implementation
+            if done:
+                over = True
+                # TODO: How to pass back Episode Success
+
+        scores.append(score)
+        avg_score = np.mean(scores)
+        eps_history.append(agent.epsilon)
+        print('episode ', _, 'score %.1f avg score %.1f epsilon %.2f, steps %.1f' %
+                  (score, avg_score, agent.epsilon, steps))
+
+    # STORE Agent
+    with open("trained_agent.pkl", "wb") as f:
+        pickle.dump(agent, f)
+
+    filename = 'plots/asset_rehabilitation_dqn.png'
+    x_axis = [i+1 for i in range(n_games)]
+
+    filename = 'plots/training_asset_rehabilitation.png'
+    utils.create_plot(x_axis, scores, filename=filename)
