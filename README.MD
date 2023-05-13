@@ -1,3 +1,9 @@
+TODO: Make Real
+- EOL score at the end of a Horizon?
+- How much did it Cost?
+- How many interventions?
+
+
 TODOs
 - Custom Environment Asset Aging
 - Custom Agent for Optimal Rehabilitation

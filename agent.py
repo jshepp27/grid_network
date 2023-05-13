@@ -1,3 +1,5 @@
+### AGENT REFACTORED FOR TENSOR ISSUES ###
+
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
@@ -8,34 +10,21 @@ import pickle
 import environment
 import random
 
-from data.archive import utils
+import utils
 
-np.set_printoptions(precision=8, suppress=True)
+#np.set_printoptions(precision=8, suppress=True)
 
 # PARAMS
 LEARNING_RATE = 0.001
 N_ACTIONS = 3
 INPUT_DIMS = 6
 EPSILON = 1.00
-GAMMA = 0.09
-DECAY = 0.0001
+GAMMA = 0.9
 EPS_MIN = 0.01
+N_GAMES = 1000
+DECAY = 0.01
 BUFFER_SIZE = 1000
-BATCH_SIZE = 64
-
-"""
-TODOs:
-- Agent Evaluation
--- Average over Multiple Episodes 
-- Draw-Model Matrix Dimensions (exp. GPT Output) [DONE]
-
-- Store Agent Model
-- Scale state, reward, target values to work with Network
-- Implement Sigmoid Activation
-- Implement Experience Replay
-- Argparse to parameterize training and eval.
- 
-"""
+BATCH_SIZE = 62
 
 class DQN(nn.Module):
     def __init__(self, lr=LEARNING_RATE, n_actions=N_ACTIONS, input_dims=INPUT_DIMS):
@@ -81,6 +70,11 @@ class ReplayBuffer:
             rewards.append(reward)
             states_.append(state)
 
+        states = np.array(states)
+        actions = np.array(actions)
+        rewards = np.array(rewards)
+        states_ = np.array(states_)
+
         return states, actions, rewards, states_
 class Agent():
     def __init__(self,
@@ -102,13 +96,13 @@ class Agent():
         self.batch_size = batch_size
         self.exp_replay = ReplayBuffer(buffer_size=self.buffer_size)
 
-        self.gamma = gamma
         self.epsilon = epsilon
         self.eps_dec = eps_dec
         self.eps_min = eps_min
         self.action_space = [_ for _ in range(self.n_actions)]
 
         self.Q = DQN(self.lr, self.n_actions, self.input_dims)
+        self.gamma = T.tensor(gamma, dtype=T.float32).to(self.Q.device)
 
     def choose_action(self, observation):
         if np.random.random() > self.epsilon:
@@ -139,12 +133,14 @@ class Agent():
         rewards = T.tensor(reward).to(self.Q.device)
         states_ = T.tensor(state_, dtype=T.float).to(self.Q.device)
 
-        actions_tensor = T.tensor(actions_taken, dtype=T.long).to(self.Q.device)
+        #actions_tensor = T.tensor(actions_taken, dtype=T.long).to(self.Q.device)
+        actions_tensor = actions_taken.clone().detach().long().to(self.Q.device)
         q_pred = self.Q.forward(states).gather(1, actions_tensor.unsqueeze(1)).squeeze(1)
 
         q_next = self.Q.forward(states_).max()
 
-        q_target = rewards + self.gamma * q_next
+        #q_target = rewards + self.gamma * q_next.double()
+        q_target = (rewards + self.gamma * q_next).float()
 
         loss = self.Q.loss(q_target, q_pred).to(self.Q.device)
         loss.backward()
@@ -160,57 +156,82 @@ class Random_Agent:
 
         return action
 
+class Human_Agent:
+    def __init__(self):
+        self.high_risk_threshold = 0.75
+        self.safety_action = 2
+        self.low_risk_threshold = 0.45
+        self.proactive_action = 1
+
+    def choose_action(self, observation):
+        """
+        The human agent makes decisions based on simple heuristic rules.
+        These might be based on the current state of the system (observation),
+        or other factors depending on the specific context of your problem.
+        """
+        if observation[-1] >= self.high_risk_threshold:
+            action = self.safety_action
+        elif observation[-1] <= self.low_risk_threshold:
+            action = self.proactive_action
+        else:
+            action = 0
+
+        return action
+
 # TRAIN
-if __name__ == "__main__":
-    env = environment.TransmissionAsset()
-    scores = []
-    eps_history = []
-    eps_av = []
-
-    obs, _, done, info = env.reset()
-    n_games = 5000
-    print(obs)
-
-    agent = Agent(lr=LEARNING_RATE, input_dims=obs.shape, n_actions=env.action_spaces.n, buffer_size=BUFFER_SIZE, batch_size=64)
-    #print(agent.Q)
-
-    for _ in range(n_games):
-        score = 0
-        steps = 0
-        max_steps = 200
-        done = False
-        obs, reward, done, info = env.reset()
-
-        over = False
-        while ((not over) and (steps < max_steps)):
-            steps += 1
-            action = agent.choose_action(obs)
-            obs_, reward, done, info = env.step(action)
-            score += reward
-
-            # Increment Experience
-            agent.exp_replay.add((obs, action, reward, obs_))
-            agent.learn()
-
-            obs = obs_
-
-            # TODO: Improve Implementation
-            if done:
-                over = True
-                # TODO: How to pass back Episode Success
-
-        scores.append(score)
-        avg_score = np.mean(scores)
-        eps_history.append(agent.epsilon)
-        print('episode ', _, 'score %.1f avg score %.1f epsilon %.2f, steps %.1f' %
-                  (score, avg_score, agent.epsilon, steps))
-
-    # STORE Agent
-    with open("trained_agent.pkl", "wb") as f:
-        pickle.dump(agent, f)
-
-    filename = 'plots/asset_rehabilitation_dqn.png'
-    x_axis = [i+1 for i in range(n_games)]
-
-    filename = 'plots/training_asset_rehabilitation.png'
-    utils.create_plot(x_axis, scores, filename=filename)
+# if __name__ == "__main__":
+#     env = environment.TransmissionAsset()
+#     scores = []
+#     eps_history = []
+#     eps_av = []
+#     total_steps = []
+#
+#     obs, _, done, info = env.reset()
+#     n_games = N_GAMES
+#
+#     agent = Agent(lr=LEARNING_RATE, input_dims=obs.shape, n_actions=env.action_spaces.n, buffer_size=BUFFER_SIZE, batch_size=64)
+#
+#     for _ in range(n_games):
+#         score = 0
+#         steps = 0
+#         max_steps = 200
+#         done = False
+#         obs, reward, done, info = env.reset()
+#
+#         over = False
+#         while ((not over) and (steps < max_steps)):
+#             steps += 1
+#             action = agent.choose_action(obs)
+#             obs_, reward, done, info = env.step(action)
+#             score += reward
+#
+#             # Increment Experience
+#             agent.exp_replay.add((obs, action, reward, obs_))
+#             agent.learn()
+#
+#             obs = obs_
+#
+#             # TODO: Improve Implementation
+#             if done:
+#                 over = True
+#                 # TODO: How to pass back Episode Success
+#
+#         scores.append(score)
+#         total_steps.append(steps)
+#         avg_score = np.mean(scores)
+#         avg_steps = np.mean(total_steps)
+#         eps_history.append(agent.epsilon)
+#         print('episode ', _, 'score %.1f avg score %.1f, avg steps %.2f, epsilon %.2f, steps %.1f' %
+#                   (score, avg_score, avg_steps, agent.epsilon, steps))
+#
+#     # STORE Agent
+#     with open("trained_agent.pkl", "wb") as f:
+#         pickle.dump(agent, f)
+#
+#     x_axis = [i+1 for i in range(n_games)]
+#
+#     filename = 'plots/training_asset_rehabilitation.png'
+#     utils.create_plot(x_axis, scores, filename=filename)
+#
+#     # TODO: XXX
+#     # PLOT AVERAGE ONLY

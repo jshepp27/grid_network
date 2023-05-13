@@ -1,21 +1,12 @@
-
-# Construct Environment
-# Loop Environment
-# Store Performance, Evaluation
-
-import environment
-
 import pickle
 import numpy as np
+import utils
+import environment
+from agent import Agent, Random_Agent, Human_Agent, ReplayBuffer, DQN
 import matplotlib.pyplot as plt
 
-"""
-TODOs:
-- Implement dill vs pickle for Agent persistence
-"""
-
 class Evaluate:
-    def __init__(self, env, agent, max_steps, random_agent=False, trials=1000):
+    def __init__(self, env, agent, max_steps, run, random_agent=False, trials=100):
         self.env = env
         self.random_agent = random_agent
         self.agent = agent
@@ -24,14 +15,10 @@ class Evaluate:
 
         self.performance = []
         self.eps_history = []
+        self.run = run
 
     def evaluate(self):
         obs, _, done, info = self.env.reset()
-        # self.agent = agent.Agent(lr=0.0001,
-        #                          input_dims=obs.shape,
-        #                          n_actions=self.env.action_spaces.n,
-        #                          buffer_size=500,
-        #                          batch_size=64)
 
         for _ in range(self.trials):
             score = 0
@@ -45,17 +32,16 @@ class Evaluate:
                 obs_, reward, done, info = self.env.step(action)
                 score += reward
 
-
                 if done:
                     over = True
 
                 obs = obs_
-
+                #print(self.env.cost_history)
 
             self.performance.append(score)
             avg_perf = np.mean(self.performance)
-            if self.random_agent == False:
 
+            if self.random_agent == False:
                 self.eps_history.append(self.agent.epsilon)
                 print('episode ', _, 'score %.1f avg score %.1f epsilon %.2f, steps %.1f' %
                                    (score, avg_perf, self.agent.epsilon, steps))
@@ -64,34 +50,35 @@ class Evaluate:
                 print('episode ', _, 'score %.1f avg score %.1f, steps %.1f' %
                       (score, avg_perf, steps))
 
-            self.env.render()
-            plt.show()
+            self.env.render(self.run)
+
 
 with open("trained_agent.pkl", "rb") as f:
     AGENT = pickle.load(f)
 
-MAX_STEPS = 250
-TRIALS = 1000
-ENV = environment.TransmissionAsset(max_steps=MAX_STEPS)
+TRIALS = 1
+HORIZON = 200
 
-evaluation = Evaluate(ENV, AGENT, MAX_STEPS, TRIALS)
+ENV = environment.TransmissionAsset(max_steps=HORIZON, train_mode=False)
+evaluation = Evaluate(ENV, AGENT, run="agent rehab", max_steps=HORIZON, trials=TRIALS)
 print(">> TRAINED AGENT")
 print("\n")
 evaluation.evaluate()
+plt.close()
 
-x_axis = [i+1 for i in range(evaluation.trials)]
-performance = evaluation.performance
-#plot = utils.create_plot(x_axis, performance, filename="plots/evaluation_asset_rehabilitation.png")
-
-#ENV = environment.TransmissionAsset()
-#RAND_AGENT = Random_Agent(ENV.action_spaces.n)
-
-#rand_evaluation = Evaluate(ENV, RAND_AGENT, MAX_STEPS, random_agent=True, trials=TRIALS)
-
+# ENV = environment.TransmissionAsset(max_steps=HORIZON, train_mode=False)
+# RAND_AGENT = Random_Agent(ENV.action_spaces.n)
+# rand_evaluation = Evaluate(ENV, RAND_AGENT, run="agent random", max_steps=HORIZON, random_agent=True, trials=TRIALS)
 # print(">> RANDOM AGENT")
 # print("\n")
 # rand_evaluation.evaluate()
-#
-# x_axis = [i+1 for i in range(rand_evaluation.trials)]
-# performance = rand_evaluation.performance
-# rand_plot = utils.create_plot(x_axis, performance, filename="plots/rand_evaluation_asset_rehabilitation.png")
+
+
+# ENV = environment.TransmissionAsset(max_steps=HORIZON, train_mode=False)
+# HUMAN_AGENT = Human_Agent()
+# human_evaluation = Evaluate(ENV, HUMAN_AGENT, run="agent bob", max_steps=HORIZON, random_agent=True, trials=TRIALS)
+# print(">> HUMAN AGENT")
+# print("\n")
+# human_evaluation.evaluate()
+
+

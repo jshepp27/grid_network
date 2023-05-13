@@ -1,0 +1,32 @@
+{
+  "distribution": {
+    "failure_rate": 0.013,
+    "cost": {
+      "do_nothing": 0,
+      "fix": 1000000,
+      "refurbish": 8000000,
+      "replace": 5000000000
+    },
+    "rehabilitation": {
+      "do_nothing": 0,
+      "fix": 0.25,
+      "refurbish": 0.65,
+      "replace": 1
+    },
+    "transmission": {
+      "failure_rate": 0.005,
+      "cost": {
+        "do_nothing": 0,
+        "fix": 250000,
+        "refurbish": 950000,
+        "replace": 300000000
+      },
+      "rehabilitation": {
+        "do_nothing": 0,
+        "fix": 0.25,
+        "refurbish": 0.65,
+        "replace": 1
+      }
+    }
+  }
+}
