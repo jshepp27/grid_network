@@ -104,7 +104,7 @@ class Agent():
         self.Q = DQN(self.lr, self.n_actions, self.input_dims)
         self.gamma = T.tensor(gamma, dtype=T.float32).to(self.Q.device)
 
-    def choose_action(self, observation):
+    def choose_action(self, observation=None, time_step=None):
         if np.random.random() > self.epsilon:
             # EXPLORE
             state = T.tensor(observation, dtype=T.float).to(self.Q.device)
@@ -156,23 +156,26 @@ class Random_Agent:
 
         return action
 
-class Human_Agent:
+# Recurring Schedule 5-10
+class Expert:
     def __init__(self):
-        self.high_risk_threshold = 0.75
-        self.safety_action = 2
-        self.low_risk_threshold = 0.45
-        self.proactive_action = 1
+        self.T = 0
+        self.mode = 10
+        self.maintain = 1
+        # self.high_risk_threshold = 0.75
+        # self.safety_action = 2
+        # self.low_risk_threshold = 0.45
+        # self.proactive_action = 1
 
-    def choose_action(self, observation):
+    def choose_action(self, observation=None, time_step=None):
         """
         The human agent makes decisions based on simple heuristic rules.
         These might be based on the current state of the system (observation),
         or other factors depending on the specific context of your problem.
         """
-        if observation[-1] >= self.high_risk_threshold:
-            action = self.safety_action
-        elif observation[-1] <= self.low_risk_threshold:
-            action = self.proactive_action
+        if time_step % self.mode == 0:
+            action = self.maintain
+
         else:
             action = 0
 
@@ -225,7 +228,7 @@ class Human_Agent:
 #                   (score, avg_score, avg_steps, agent.epsilon, steps))
 #
 #     # STORE Agent
-#     with open("trained_agent.pkl", "wb") as f:
+#     with open("trained_agent_.pkl", "wb") as f:
 #         pickle.dump(agent, f)
 #
 #     x_axis = [i+1 for i in range(n_games)]

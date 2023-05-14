@@ -10,7 +10,12 @@ import string
 
 np.set_printoptions(precision=8, suppress=True)
 
+# TODO: Randomly Sample Assets
+# TODO: Train-Evaluate-Record
 # TODO: Tune Reward-Training Results
+# TODO: Scale
+# TODO: Evaluation Charts
+# TODO: Duelling Networks
 # TODO: Renames: age_intrinsic
 
 # TODO: Work Penalty [DONE]
@@ -22,7 +27,7 @@ np.set_printoptions(precision=8, suppress=True)
 # TODO: Experiment with Reward Functions [DONE]
 
 import json
-intervention_matrix = json.loads(open("intervention_matrix.json", "r").read())
+intervention_matrix = json.loads(open("data/intervention_matrix.json", "r").read())
 
 class TransmissionAsset(gym.Env):
     def __init__(self,
@@ -34,6 +39,7 @@ class TransmissionAsset(gym.Env):
 
         super(TransmissionAsset, self).__init__()
 
+        self.time_step = 0
         self.visualise = visualise
         self.train_mode = train_mode
         self.max_steps = max_steps
@@ -62,8 +68,8 @@ class TransmissionAsset(gym.Env):
         self.c_refurbish = self.costs["refurbish"]
         self.c_replace = self.costs["replace"]
 
-        self.fix_lower = 10
-        self.fix_upper = 30
+        self.fix_lower = 5
+        self.fix_upper = 10
         self.refurbish_upper = 0.70
 
         self.CONSTANT_POSITIVE_REWARD = 1.0
@@ -185,7 +191,7 @@ class TransmissionAsset(gym.Env):
         reward = 0
         done = False
 
-        return self.state_vector, reward, done, {}
+        return self.state_vector, reward, done, {"step": self.time_step}
 
     def step(self, action):
         """
@@ -193,13 +199,13 @@ class TransmissionAsset(gym.Env):
         Consider Backup Diagram: Compute reward r_t, given a_t
         Compute environment transition from s_t, s_t+1 returning updated state
         """
-
+        self.time_step += 1
         self.degrade(action)
         self.action_history.append(action)
         self.total_cost += action
         self.num_actions += 1
 
-          # failure event only occurs if EOL > 0.1
+        # failure event only occurs if EOL > 0.1
 
         # alpha = max(self.state["EOL"] * scale_factor, 1e-3)
         # beta = max((1 - self.state["EOL"]) * scale_factor, 1e-3)
@@ -215,7 +221,7 @@ class TransmissionAsset(gym.Env):
         self.state_vector = self.scale_state()
         self.agent_risk.append(self.state["EOL"])
 
-        return self.state_vector, reward, done, {}
+        return self.state_vector, reward, done, {"step": self.time_step}
 
     def render(self, run):
         file_name = f"data/animations/{run}.mp4"

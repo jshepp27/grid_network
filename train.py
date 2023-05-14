@@ -76,7 +76,7 @@ if __name__ == "__main__":
                   (score, avg_score, avg_steps, agent.epsilon, steps))
 
     # STORE Agent
-    with open("trained_agent.pkl", "wb") as f:
+    with open("models/trained_agent.pkl", "wb") as f:
         pickle.dump(agent, f)
 
     x_axis = [i+1 for i in range(n_games)]

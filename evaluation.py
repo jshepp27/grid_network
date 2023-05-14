@@ -2,7 +2,7 @@ import pickle
 import numpy as np
 import utils
 import environment
-from agent import Agent, Random_Agent, Human_Agent, ReplayBuffer, DQN
+from agent import Agent, Random_Agent, Expert, ReplayBuffer, DQN
 import matplotlib.pyplot as plt
 
 class Evaluate:
@@ -28,8 +28,10 @@ class Evaluate:
             over = False
             while ((not over) and (steps < self.max_steps)):
                 steps += 1
-                action = self.agent.choose_action(obs)
+                action = self.agent.choose_action(obs, info["step"])
+
                 obs_, reward, done, info = self.env.step(action)
+
                 score += reward
 
                 if done:
@@ -53,18 +55,18 @@ class Evaluate:
             self.env.render(self.run)
 
 
-with open("trained_agent.pkl", "rb") as f:
+with open("models/trained_agent.pkl", "rb") as f:
     AGENT = pickle.load(f)
 
 TRIALS = 1
 HORIZON = 200
 
-ENV = environment.TransmissionAsset(max_steps=HORIZON, train_mode=False)
-evaluation = Evaluate(ENV, AGENT, run="agent rehab", max_steps=HORIZON, trials=TRIALS)
-print(">> TRAINED AGENT")
-print("\n")
-evaluation.evaluate()
-plt.close()
+# ENV = environment.TransmissionAsset(max_steps=HORIZON, train_mode=False)
+# evaluation = Evaluate(ENV, AGENT, run="agent rehab", max_steps=HORIZON, trials=TRIALS)
+# print(">> TRAINED AGENT")
+# print("\n")
+# evaluation.evaluate()
+# plt.close()
 
 # ENV = environment.TransmissionAsset(max_steps=HORIZON, train_mode=False)
 # RAND_AGENT = Random_Agent(ENV.action_spaces.n)
@@ -73,12 +75,11 @@ plt.close()
 # print("\n")
 # rand_evaluation.evaluate()
 
-
-# ENV = environment.TransmissionAsset(max_steps=HORIZON, train_mode=False)
-# HUMAN_AGENT = Human_Agent()
-# human_evaluation = Evaluate(ENV, HUMAN_AGENT, run="agent bob", max_steps=HORIZON, random_agent=True, trials=TRIALS)
-# print(">> HUMAN AGENT")
-# print("\n")
-# human_evaluation.evaluate()
+ENV = environment.TransmissionAsset(max_steps=HORIZON, train_mode=False)
+EXPERT = Expert()
+expert_evaluation = Evaluate(ENV, EXPERT, run="agent greybeard", max_steps=HORIZON, random_agent=True, trials=TRIALS)
+print(">> GREYBEARD AGENT")
+print("\n")
+expert_evaluation.evaluate()
 
 
