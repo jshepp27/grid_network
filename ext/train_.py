@@ -28,7 +28,7 @@ grid = json.loads(open("../data/uk_grid.json", "r").read())
 
 # TRAIN
 if __name__ == "__main__":
-    env = environment_ext.TransmissionAsset()
+    env = environment_.TransmissionAsset()
     scores = []
     eps_history = []
     eps_av = []
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     for _ in range(n_games):
         substation = random.sample(grid["substations"], k=1)[0]
 
-        env = environment_ext.TransmissionAsset(
+        env = environment_.TransmissionAsset(
             substation=substation,
             train_mode=True,
             conservatism=CONSERVATISM,

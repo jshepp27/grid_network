@@ -116,7 +116,7 @@ class TransmissionAsset(gym.Env):
 
         self.cost_history = []
         self.reward_history = []
-        self.agent_risk = []
+        self.risk = []
 
     def eol(self, age):
         return float(1 - math.exp(-self.failure_rate * age))
@@ -186,6 +186,12 @@ class TransmissionAsset(gym.Env):
         reward = 0
         done = False
 
+        self.action_history = []
+        self.action_costs = []
+        self.cost_history = []
+        self.reward_history = []
+        self.risk = []
+
         self.reward_history.append(reward)
 
         return self.state_vector, reward, done, {"time_step": self.time_step}
@@ -207,7 +213,7 @@ class TransmissionAsset(gym.Env):
         done = failed
 
         self.state_vector = self.scale_state()
-        self.agent_risk.append(self.state["EOL"])
+        self.risk.append(self.state["EOL"])
         self.reward_history.append(reward)
 
         return self.state_vector, reward, done, {"time_step": self.time_step}
@@ -239,7 +245,7 @@ class TransmissionAsset(gym.Env):
             ax2.set_xlim(0, self.max_steps)
 
             # Plot the cumulative change in risk (probability of failure)
-            ax1.plot(ages, self.agent_risk[:frame + 1], label='EOL', color='g')
+            ax1.plot(ages, self.risk[:frame + 1], label='EOL', color='g')
             ax1.set_xlabel('Time')
             ax1.set_ylabel('EOL')
             ax1.legend(loc='upper left')
@@ -269,7 +275,7 @@ class TransmissionAsset(gym.Env):
             padding = -0.10
             # Add annotations for the action taken by the agent
             for i, action in enumerate(self.action_history[:frame + 1]):
-                y_coord = self.agent_risk[i] * (1 + padding)
+                y_coord = self.risk[i] * (1 + padding)
                 if (action == 1 or action == 2):
                     ax1.annotate(f'{action}', (i, y_coord), fontsize=15)
 

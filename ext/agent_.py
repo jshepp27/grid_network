@@ -3,7 +3,6 @@ import torch.nn.functional as F
 import torch.optim as optim
 import torch as T
 import numpy as np
-import pickle
 import random
 
 # PARAMS
